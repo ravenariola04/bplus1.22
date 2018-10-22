@@ -8,7 +8,7 @@ use Auth, Alert, DB, App\Vat;
 use Illuminate\Support\Facades\Input;
 use App\WalkinPayment, App\EmployeeWalkin;
 use App\BillingService, App\CommissionSetting;
-use App\User, App\Walkin, App\Payment, App\Service;
+use App\User, App\Walkin, App\Payment, App\Service, App\Promo;
 use App\Commission, App\ServiceType, App\ServiceWalkin;
 
 class WalkinController extends Controller
@@ -43,7 +43,8 @@ class WalkinController extends Controller
         $service_types = ServiceType::all();
         $services = Service::all();
         $expertise = Expertise::all();
-        return view ('system/walk-in/create', compact('hairstylists', 'service_types', 'services', 'expertise'));
+        $promo = Promo::groupBy('name')->get();
+        return view ('system/walk-in/create', compact('hairstylists', 'service_types', 'services', 'expertise', 'promo'));
     }
 
     public function store(Request $request)
@@ -66,6 +67,16 @@ class WalkinController extends Controller
             Alert::error('Walk-in has conflict!')->persistent("OK");
             return redirect()->back()->withInput(Input::all());
         }*/
+
+        $checkExistingWalkin = Walkin::where('walkin_time', $request->walkin_time)
+            ->where(DB::raw("(DATE_FORMAT(created_at,'%Y-%m-%d'))"), '=', $current_day)
+            ->where('status', 'Pending')->first();
+
+
+        if($checkExistingWalkin) {
+            Alert::error('Walk-in has conflict!')->persistent("OK");
+            return redirect()->back()->withInput(Input::all());
+        }
 
         $createCustomerWalkin = Walkin::create([
             'firstname' => $request->firstname,
@@ -94,6 +105,8 @@ class WalkinController extends Controller
             ]);
             $i++;
         }
+
+
 
         Alert::success('Walk-in has been Added!')->persistent("OK");
         return redirect()->route('walk-in.index');

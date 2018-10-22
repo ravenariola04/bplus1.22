@@ -70,6 +70,7 @@
                         <li><a class="" href="{{ route('service-type.index') }}">Service Type</a></li>
                         <li><a class="" href="{{ route('services.index') }}">Services</a></li>
                         <li><a class="" href="{{ route('roles.index') }}">Roles</a></li>
+                        <li><a class="" href="{{ route('promo.index') }}">Promos</a></li>
                     </ul>
                 </li>
 

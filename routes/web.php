@@ -28,6 +28,10 @@ route::group(['middleware' => 'auth'], function() {
 	route::resource('expertise', 'ExpertiseController'); //EXPERTISE
 	route::resource('salary', 'SalaryController'); //EMPLOYEE SALARY
 
+	//promo
+	route::resource('promo', 'PromoController'); //WALKINS
+
+
 	//commissions
 	route::get('admin/employee-commissions', 'CommissionsController@viewAllCommissions')->name('viewAllCommissions');
 
@@ -48,6 +52,9 @@ route::group(['middleware' => 'auth'], function() {
 	//walkin pay
 	route::get('walk-in/pay/{walkin_id}','WalkinController@walkinPay')->name('walkinPay');
 	route::post('walk-in/pay/store','WalkinController@walkinPayStore')->name('walkinPayStore');
+
+	//promos
+
 
 	//reservation
 	//home service

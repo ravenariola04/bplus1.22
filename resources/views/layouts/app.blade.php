@@ -279,6 +279,17 @@
             })
         })
     </script>
+<script >
+  $ (function () {
+    $ ('carousel'). carousel ({interval: 2000})
+    $ ('#cycle') click (function () {
+      $ ( '.Carousel'). Carousel ( 'cycle')
+    })
+    $ ('#pause') click (function () {
+      $ ( '.Carousel'). Carousel ( 'pause')
+    })
+  })
+</script>
 
 </body>
 </html>

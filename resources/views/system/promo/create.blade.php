@@ -17,32 +17,32 @@
 	 		<div class="col-lg-8">
 	 			<h4>Walk-in Form</h4>
 	 			<div class="hline"></div>
-	 			<form role="form" method="POST" action="{{ route('walk-in.store') }}">
+	 			<form role="form" method="POST" action="{{ route('promo.store') }}">
                    	{{ csrf_field() }}
 
 	 				<div class="row"><br>
 
 						<div class="col-lg-6 col-md-6">
-							<br><label>First Name:</label>
-							<input type="name" class="form-control" @if ($errors->has('firstname')) style="border-color: red;" @endif name="firstname" value="{{ old('firstname') }}" required autofocus placeholder="First Name">
+							<br><label>Promo:</label>
+							<input type="name" class="form-control" @if ($errors->has('promo')) style="border-color: red;" @endif name="promo" value="{{ old('promo') }}" required autofocus placeholder="Promo Name">
 
-							@if ($errors->has('firstname'))
-                                <strong>{{ $errors->first('firstname') }}</strong>
+							@if ($errors->has('promo'))
+                                <strong>{{ $errors->first('promo') }}</strong>
                             @endif
 						</div>
 
 						<div class="col-lg-6 col-md-6">
-							<br><label>Last Name:</label>
-							<input type="name" class="form-control" @if ($errors->has('lastname')) style="border-color: red;" @endif name="lastname" value="{{ old('lastname') }}" required autofocus placeholder="Last Name">
+							<br><label>Price:</label>
+							<input type="number" class="form-control" @if ($errors->has('price')) style="border-color: red;" @endif name="price" value="{{ old('price') }}" required autofocus placeholder="Price">
 
-							@if ($errors->has('lastname'))
-                                <strong>{{ $errors->first('lastname') }}</strong>
+							@if ($errors->has('price'))
+                                <strong>{{ $errors->first('price') }}</strong>
                             @endif
 						</div>
 
 					</div>
 
-					<div class="row">
+					<!-- <div class="row">
 
 						<div class="col-lg-6 col-md-6">
 							<br><label>Contact:</label>
@@ -64,11 +64,11 @@
                             @endif
 						</div>
 
-					</div>
+					</div> -->
 
 
 					<div class="row">
-
+<!-- 
 						<div class="col-lg-6 col-md-6">
 							<br><label>Hair Stylist:</label>
 							<select name="employee_id[]" id="selectWalkinEmpId" class="selectpicker form-control" multiple data-live-search="true" multiple data-selected-text-format="count > 1">
@@ -80,9 +80,9 @@
 							@if ($errors->has('employee_id'))
                                 <strong>{{ $errors->first('employee_id') }}</strong>
                             @endif
-						</div>
+						</div> -->
 
-						<div class="col-lg-6 col-md-6">
+						<!-- <div class="col-lg-6 col-md-6">
 							<br><label>Time:</label>
 							<select name="walkin_time" class="form-control">
 								<option value="">-Select One-</option>
@@ -118,7 +118,7 @@
 							@if ($errors->has('walkin_time'))
                                 <strong>{{ $errors->first('walkin_time') }}</strong>
                             @endif
-						</div>
+						</div> -->
 
 					</div>
 
@@ -126,7 +126,7 @@
 						<br><h3>Services :</h3>
 							<!-- <br><h3>{$service_type->name}}</h3><br> -->
 							@foreach($expertise as $expertise1)
-								<div id="{{$expertise1->id}}" class="sample" style="display:none;">
+								<div id="{{$expertise1->id}}" class="sample" style="display:block;">
 									<h3>{{$expertise1->name}}</h3>
 									<ul class="checkboxes1" style="columns: 4 8em;">
 				                        @foreach($services as $service)
