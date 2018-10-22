@@ -385,9 +385,7 @@ class ReservationsController extends Controller
             ->select('reservations.*', 'users.firstname as customer_firstname', 'reservations.created_at as date_added', 'users.lastname as customer_lastname', 'users2.firstname as processedByFirstname', 'users2.lastname as processedByLastname', 'users2.email as email_user')
             ->get();
 
-        $user2 = User::select('email')
-                ->where('users.id', $reservation_id)
-                ->get();
+        
 
         //get services from pivot
         $getServicesFromPivot = ReservationService::join('services', 'services.id', 'reservation_service.service_id')
@@ -431,15 +429,7 @@ class ReservationsController extends Controller
                 'amount' => $amount[$i]
             ]);
         }
-        $data = [
-                 'email'          => $user2->email
-        ];
-        Mail::send('emails.welcome',array($user), function($message) 
-            {
-                $message->from('BPLUS@gmail.com', "BPLUS");
-                $message->subject("Reservation Approved");
-                $message->to($user->email);
-            });
+       
 
     	Alert::success('Reservation Approved!')->persistent("OK");
     	return redirect()->back();
