@@ -51,6 +51,9 @@ class WalkinController extends Controller
     {
 
         $current_day = date('Y-m-d');
+        $current_time = date('h:i:s a');
+        // return date('h:i:s', strtotime($request->walkin_time));
+        $post_time = date('h:i:s a', strtotime($request->walkin_time));
 
         $this->validate($request, [
             'firstname' => 'required', 'lastname' => 'required', 'contact_no' => 'required',
@@ -68,48 +71,63 @@ class WalkinController extends Controller
             return redirect()->back()->withInput(Input::all());
         }*/
 
+        if($post_time < $current_time){
+            // return 'Fail';
+
+            Alert::error('Invalid Time! Please input a valid time greater than the current time.')->persistent("OK");
+            return $this->create();
+        }
+
+
         $checkExistingWalkin = Walkin::where('walkin_time', $request->walkin_time)
             ->where(DB::raw("(DATE_FORMAT(created_at,'%Y-%m-%d'))"), '=', $current_day)
-            ->where('status', 'Pending')->first();
+             ->count('walkin_time');
+            // ->get(['walkin_time']);
 
-
-        if($checkExistingWalkin) {
+        // return $checkExistingWalkin;
+        if($checkExistingWalkin == 1) {
             Alert::error('Walk-in has conflict!')->persistent("OK");
             return redirect()->back()->withInput(Input::all());
-        }
+        }else{
 
-        $createCustomerWalkin = Walkin::create([
-            'firstname' => $request->firstname,
-            'lastname' => $request->lastname,
-            'contact_no' => $request->contact_no,
-            'email' => $request->email,
-            'walkin_time' => $request->walkin_time,
-            'status' => 'Pending'
-        ]);
-
-        //Insert multiple hairstylist and walkin id to pivot
-        $i = 0; 
-        foreach($request->employee_id as $key => $v){
-            $createEmployeeWalkin = EmployeeWalkin::create([
-                'employee_id' => $request->employee_id[$i],
-                'walkin_id' => $createCustomerWalkin->id
+            // return date('h:i:s a', strtotime($request->walkin_time));
+            $createCustomerWalkin = Walkin::create([
+                'firstname' => $request->firstname,
+                'lastname' => $request->lastname,
+                'contact_no' => $request->contact_no,
+                'email' => $request->email,
+                'walkin_time' => $request->walkin_time,
+                'status' => 'Pending'
             ]);
-            $i++;
+
+            //Insert multiple hairstylist and walkin id to pivot
+            $i = 0; 
+            foreach($request->employee_id as $key => $v){
+                $createEmployeeWalkin = EmployeeWalkin::create([
+                    'employee_id' => $request->employee_id[$i],
+                    'walkin_id' => $createCustomerWalkin->id
+                ]);
+                $i++;
+            }
+
+            $i = 0; 
+            foreach($request->service_id as $key => $v){
+                $createServiceWalkin = ServiceWalkin::create([
+                    'service_id' => $request->service_id[$i],
+                    'walkin_id' => $createCustomerWalkin->id
+                ]);
+                
+                $i++;
+            }
+
+
+
+            Alert::success('Walk-in has been Added!')->persistent("OK");
+            return redirect()->route('walk-in.index');
+            
         }
 
-        $i = 0; 
-        foreach($request->service_id as $key => $v){
-            $createServiceWalkin = ServiceWalkin::create([
-                'service_id' => $request->service_id[$i],
-                'walkin_id' => $createCustomerWalkin->id
-            ]);
-            $i++;
-        }
 
-
-
-        Alert::success('Walk-in has been Added!')->persistent("OK");
-        return redirect()->route('walk-in.index');
 
     }
 

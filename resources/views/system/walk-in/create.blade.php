@@ -84,7 +84,9 @@
 
 						<div class="col-lg-6 col-md-6">
 							<br><label>Time:</label>
-							<select name="walkin_time" class="form-control">
+							<input id="walkin_time" type="time" class="form-control"  name="walkin_time" value="{{ old('email') }}" required>
+
+							<!-- <select name="walkin_time" class="form-control">
 								<option value="">-Select One-</option>
 								<option value="07:00 - 07:30 AM">07:00 - 07:30 AM</option>
 								<option value="07:30 - 08:00 AM">07:30 - 08:00AM</option>
@@ -113,7 +115,7 @@
 								<option value="7:00 - 7:30 PM">7:00 - 7:30PM</option>
 								<option value="7:30 - 8:00 PM">7:30 - 8:00PM</option>
 
-							</select>
+							</select> -->
 
 							@if ($errors->has('walkin_time'))
                                 <strong>{{ $errors->first('walkin_time') }}</strong>
@@ -128,13 +130,13 @@
 							@foreach($expertise as $expertise1)
 								<div id="{{$expertise1->id}}" class="sample" style="display:none;">
 									<h3>{{$expertise1->name}}</h3>
-									<ul class="checkboxes1" style="columns: 4 8em;">
+									<ul class="checkboxes1" style="columns: 2 8em;">
 				                        @foreach($services as $service)
 			                        		@if($service->expertise_id == $expertise1->id)
 				                        		<label>
 					                        		<input type="checkbox" name="service_id[]" value="{{$service->id}}" style="" 
 					                        		@if(is_array(old('service_id')) && in_array($service->id, old('service_id'))) checked @endif />
-					                        		{{$service->name}} (&#8369;{{$service->price}})
+					                        		{{$service->name}} (&#8369;{{$service->price}}) ({{$service->service_time}} Mins.)
 				                        		</label>
 			                        		@endif
 				                        @endforeach 

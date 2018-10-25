@@ -51,7 +51,8 @@
 
 						<div class="col-lg-6 col-md-6">
 							<br><label>Reservation Time:</label>
-							<select name="reservation_time" class="form-control">
+							<input type="Time" id="" name="reservation_time" value="{{old('reservation_time')}}" class="form-control" placeholder="Please choose a time..." >
+							<!-- <select name="reservation_time" class="form-control">
 								<option value="">-Select One-</option>
 								<option value="07:00 - 07:30 AM">07:00 - 07:30 AM</option>
 								<option value="07:30 - 08:00 AM">07:30 - 08:00AM</option>
@@ -80,7 +81,7 @@
 								<option value="7:00 - 7:30 PM">7:00 - 7:30PM</option>
 								<option value="7:30 - 8:00 PM">7:30 - 8:00PM</option>
 
-							</select>
+							</select> -->
 
 							@if ($errors->has('reservation_time'))
                                 <strong>{{ $errors->first('reservation_time') }}</strong>
@@ -93,7 +94,20 @@
 
 						<div class="col-lg-6 col-md-6">
 							<br><label>Address:</label>
-							<textarea name="address" cols="30" rows="3" style="resize:vertical;" class="form-control">{{old('address')}}</textarea>
+							<!-- <textarea name="address" cols="30" rows="3" style="resize:vertical;" class="form-control">{{old('address')}}</textarea> -->
+
+							<select name="address" class="form-control">
+								<option value="">-Select One-</option>
+								<option value="Meycuayan">Meycuayan</option>
+								<option value="Marilao">Marilao</option>
+								<option value="San Jose">San Jose</option>
+								<option value="Sta. Maria">Sta. Maria</option>
+								<option value="Pandi">Pandi</option>
+								<option value="Balagtas">Balagtas</option>
+								<option value="Baliwag">Baliwag</option>
+								
+
+							</select>
 
 							@if ($errors->has('address'))
                                 <strong>{{ $errors->first('address') }}</strong>

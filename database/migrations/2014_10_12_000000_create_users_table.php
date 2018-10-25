@@ -25,6 +25,8 @@ class CreateUsersTable extends Migration
             $table->string('address');
             $table->string('gender');
             $table->string('expertise_id')->nullable(); // for employees
+            $table->string('verifyToken');
+            $table->boolean('status')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

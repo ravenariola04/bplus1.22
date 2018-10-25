@@ -4,10 +4,13 @@ route::get('/', 'WebsiteController@index')->name('website-index');
 route::get('about', 'WebsiteController@about')->name('website-about');
 route::get('foot-spa-treatments', 'WebsiteController@footSpaTreatments')->name('websiteFootSpaTreatments');
 route::get('hair-fashion-treatments', 'WebsiteController@hairFashionTreatments')->name('websiteHairFashionTreatments');
+route::get('verifyEmailFirst','Auth\RegisterController@verifyEmailFirst')->name('verifyEmailFirst');
+route::get('verify/{email}/{verifyToken}', 'Auth\RegisterController@sendEmailDone')->name('sendEmailDone');
 
 Auth::routes();
 
 route::group(['middleware' => 'auth'], function() {
+
 	//admin dashboard
 	route::get('admin-dashboard', 'DashboardController@adminDashboard')->name('adminDashboard');
 	//customer dashboard

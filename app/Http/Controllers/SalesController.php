@@ -36,8 +36,16 @@ class SalesController extends Controller
     	$checkDate= Payment::whereBetween('created_at', array($datef, $datet))
 		            ->selectRaw('sum(total_amount) as totals')	
 		            ->selectRaw('created_at as ca')
-		    		->get();
-    	return view ('system/sales/adminAllSales', compact('checkDate')) ;
+		    		->first();
+		$checkDate2= WalkinPayment::whereBetween('created_at', array($datef, $datet))
+		            ->selectRaw('sum(total_amount) as totals')	
+		            ->selectRaw('created_at as ca')
+		    		->first();
+		$payment = Payment::all();
+		$walkinpay = WalkinPayment::all();
+		    		// return $checkDate2->totals + $checkDate->totals;
+		// return $walkinpay;
+    	return view ('system/sales/adminAllSales', compact('checkDate', 'checkDate2', 'walkinpay', 'payment')) ;
 
     }
 

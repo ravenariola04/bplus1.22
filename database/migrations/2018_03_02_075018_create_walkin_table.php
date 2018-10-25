@@ -20,6 +20,7 @@ class CreateWalkinTable extends Migration
             $table->string('contact_no');
             $table->string('email');
             $table->string('walkin_time');
+            // $table->string('walkin_time_out');
             $table->string('status')->nullable();
             $table->timestamps();
         });

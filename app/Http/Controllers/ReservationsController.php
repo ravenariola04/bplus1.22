@@ -59,16 +59,30 @@ class ReservationsController extends Controller
     	]);
 
       
+        $current_time = date('h:i:s a');
+        // return date('h:i:s', strtotime($request->walkin_time));
+        $post_time = date('h:i:s a', strtotime($request->reservation_time));
 
-    	$checkCustomer = User::where('firstname', 'LIKE', "%$request->firstname%")
-    		->where('lastname', 'LIKE', "%$request->lastname")->where('role_id', User::IS_CUSTOMER)
+        if($post_time < $current_time){
+            // return 'Fail';
+            Alert::error('Invalid Time! Please input a valid time greater than the current time.')->persistent("OK");
+            return $this->addHomeServiceReservation();
+        }
+
+    	 $checkCustomer = User::where('firstname', 'LIKE', "%$request->firstname%")
+            ->where('lastname', 'LIKE', "%$request->lastname")->where('role_id', User::IS_CUSTOMER)
             ->select('users.id as customer_id')->first();
+
+    	//if user exists
+    	if($checkCustomer) {
+    		
+           
 
 
             $checkReservationConflict = Reservation::where('reservation_time', $request->reservation_time)
             ->where('reservation_date', $request->reservation_date)
             ->where('status', '!=', 'Cancelled')
-            ->first();
+            ->count('reservation_time');
 
             // $checkReservationConflict1 = Reservation::where('reservation_time', $request->reservation_time)
             //     ->where('reservation_date', $request->reservation_date)
@@ -76,15 +90,11 @@ class ReservationsController extends Controller
             //     ->where('status', '!=', 'Cancelled')
             //     ->first();
             //check if customer is currently reserved with same date/time
-
-            if($checkReservationConflict ) {
-                Alert::error('Home Service Reservation Has Conflict!')->persistent("OK");
+            // return $checkReservationConflict;
+            if($checkReservationConflict > 0 ) {
+                Alert::error('Home Service Reservation Has Time Conflict!')->persistent("OK");
                 return redirect()->back()->withInput(Input::all());
             } 
-
-    	//if user exists
-    	if($checkCustomer) {
-    		
     		/*$checkReservationConflict = Reservation::where('reservation_time', $request->reservation_time)
             ->where('reservation_date', $request->reservation_date)
             ->where('employee_id', $request->employee_id)
@@ -109,11 +119,7 @@ class ReservationsController extends Controller
                 $lowercaseAddress = Str::lower($request->address);
                 $contains = str_contains($lowercaseAddress, 'meycuayan bulacan');
 
-                if($contains ){
-                    
-
-                    
-
+                // if($contains ){
                     $createHomeServiceReservation = Reservation::create([
                     'customer_id' => $checkCustomer->customer_id,
                     'reservation_date' => $request->reservation_date,
@@ -146,11 +152,11 @@ class ReservationsController extends Controller
                     return redirect()->route('viewAllReservations');
 
 
-                }else{
-                    Alert::error('Home Service Reservation Address Not Accepted!')->persistent("OK");
-                    return redirect()->route('viewAllReservations');
+                // }else{
+                //     Alert::error('Home Service Reservation Address Not Accepted!')->persistent("OK");
+                //     return redirect()->route('viewAllReservations');
 
-                }   
+                // }   
 		        
 	        /*}*/
 
@@ -242,11 +248,23 @@ class ReservationsController extends Controller
 
     public function storeOnSpaReservation(Request $request) {
 
+        $current_day = date('Y-m-d');
+        $current_time = date('h:i:s a');
+        // return date('h:i:s', strtotime($request->walkin_time));
+        $post_time = date('h:i:s a', strtotime($request->reservation_time));
+
     	$this->validate($request, [
     		'firstname' => 'required', 'lastname' => 'required', 'reservation_date' => 'required',
     		'reservation_time' => 'required', 'employee_id' => 'required',
     		'service_id' => 'required'
     	]);
+
+        if($post_time < $current_time){
+            // return 'Fail';
+
+            Alert::error('Invalid Time! Please input a valid time greater than the current time.')->persistent("OK");
+            return $this->addOnSpaReservation();
+        }
 
     	$checkCustomer = User::where('firstname', 'LIKE', "%$request->firstname%")
     		->where('lastname', 'LIKE', "%$request->lastname")
@@ -255,7 +273,23 @@ class ReservationsController extends Controller
     		->first();
 
     	//if user exists
-    	if($checkCustomer) {
+    	if($checkCustomer){
+            $checkReservationConflict = Reservation::where('reservation_time', $request->reservation_time)
+            ->where('reservation_date', $request->reservation_date)
+            ->where('status', '!=', 'Cancelled')
+            ->count('reservation_time');
+
+            // $checkReservationConflict1 = Reservation::where('reservation_time', $request->reservation_time)
+            //     ->where('reservation_date', $request->reservation_date)
+            //     ->where('customer_id', $checkCustomer->customer_id)
+            //     ->where('status', '!=', 'Cancelled')
+            //     ->first();
+            //check if customer is currently reserved with same date/time
+            // return $checkReservationConflict;
+            if($checkReservationConflict > 0 ) {
+                Alert::error('Home Service Reservation Has Time Conflict!')->persistent("OK");
+                return redirect()->back()->withInput(Input::all());
+            } 
 
     		/*$checkReservationConflict = Reservation::where('reservation_time', $request->reservation_time)
             ->where('reservation_date', $request->reservation_date)
@@ -274,6 +308,8 @@ class ReservationsController extends Controller
 	            Alert::error('On Salon Reservation Has Conflict!')->persistent("OK");
 	            return redirect()->back()->withInput(Input::all());
 	        } else { //IF THERE IS NO CONFLICT*/
+
+
 	        	$createOnSalonReservation = Reservation::create([
 	        		'customer_id' => $checkCustomer->customer_id,
 	        		'reservation_date' => $request->reservation_date,
@@ -383,9 +419,9 @@ class ReservationsController extends Controller
         $user = Reservation::join('users', 'users.id', 'reservations.customer_id')
             ->leftjoin('users as users2', 'users2.id', 'reservations.processed_by')
             ->select('reservations.*', 'users.firstname as customer_firstname', 'reservations.created_at as date_added', 'users.lastname as customer_lastname', 'users2.firstname as processedByFirstname', 'users2.lastname as processedByLastname', 'users2.email as email_user')
-            ->get();
-
-        
+            ->first();
+        return $user->email_user;
+         $user2 = DB::table('users')->select('email')->where('users.id','=', $reservation_id)->first();
 
         //get services from pivot
         $getServicesFromPivot = ReservationService::join('services', 'services.id', 'reservation_service.service_id')
@@ -429,6 +465,13 @@ class ReservationsController extends Controller
                 'amount' => $amount[$i]
             ]);
         }
+
+         // Mail::send('emails.welcome', $user, function($message) use ($user)
+         //    {
+         //        $message->from('BPLUS@gmail.com', "BPLUS");
+         //        $message->subject(" Reservation Approved");
+         //        $message->to($user['email_user']);
+         //    });
        
 
     	Alert::success('Reservation Approved!')->persistent("OK");

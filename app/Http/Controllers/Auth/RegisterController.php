@@ -10,7 +10,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Str;
+use App\Mail\verifyEmail;
 class RegisterController extends Controller
 {
     /*
@@ -31,7 +32,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/login';
+    // protected $redirectTo = '/login';
 
     public function register(Request $request)
     {
@@ -40,6 +41,7 @@ class RegisterController extends Controller
         event(new Registered($user = $this->create($request->all())));
 
         /*$this->guard()->login($user);*/
+        return redirect(route('verifyEmailFirst'));
 
         return $this->registered($request, $user)
                         ?: redirect($this->redirectPath());
@@ -92,16 +94,44 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
             'address' => $data['address'],
             'role_id' => 2,
+            'verifyToken' => Str::random(40),
         ]);
 
-        Mail::send('emails.welcome', $data, function($message) use ($data)
-            {
-                $message->from('BPLUS@gmail.com', "BPLUS");
-                $message->subject("Welcome to BPLUS");
-                $message->to($data['email']);
-            });
-       
+        // Mail::send('emails.welcome', $data, function($message) use ($data)
+        //     {
+        //         $message->from('BPLUS@gmail.com', "BPLUS");
+        //         $message->subject("Welcome to BPLUS");
+        //         $message->to($data['email']);
+        //     });
+        $thisUser = User::findOrFail($user->id);
+        $this->sendEmail($thisUser);
 
         return $user;
+
+
+
     }
+
+    public function sendEmail($thisUser)
+    {
+        Mail::to($thisUser['email'])->send(new verifyEmail($thisUser));
+    }
+
+    public function verifyEmailFirst()
+    {
+        return view('emails.verifyEmailFirst');
+    }
+
+    public function sendEmailDone($email,$verifyToken)
+    {
+        // return $email;
+        $user = User::where(['email'=>$email, 'verifyToken'=>$verifyToken])->first() ;
+        if($user){
+            User::where(['email'=>$email, 'verifyToken'=>$verifyToken])->update(['status'=>'1', 'verifyToken'=>NULL]);
+            return view('emails.emailVerified');
+        }else{
+            return 'User Not Found ';
+        }
+    }
+        
 }
