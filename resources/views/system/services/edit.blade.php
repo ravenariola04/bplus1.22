@@ -81,6 +81,17 @@
                                 @endif
 							</div>
 
+							<div class="col-lg-6">
+								<br><label>Time(Minute):</label>
+								<input type="text" class="form-control" name="service_time" id="service_time"  placeholder="(In Minutes)" value="{{$service->service_time}}">
+
+								@if ($errors->has('service_time'))
+                                    <span class="help-info">
+                                        <strong>{{ $errors->first('service_time') }}</strong>
+                                    </span>
+                                @endif
+							</div>
+
 							
 						
 						</div>
