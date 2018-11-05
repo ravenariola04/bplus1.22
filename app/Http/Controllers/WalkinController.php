@@ -71,24 +71,43 @@ class WalkinController extends Controller
             return redirect()->back()->withInput(Input::all());
         }*/
 
-        if($post_time < $current_time){
-            // return 'Fail';
+        
 
-            Alert::error('Invalid Time! Please input a valid time greater than the current time.')->persistent("OK");
-            return $this->create();
-        }
+        // if($post_time < $current_time){
+        //     // return 'Fail';
 
+        //     Alert::error('Invalid Time! Please input a valid time greater than the current time.')->persistent("OK");
+        //     return $this->create();
+        // }
+        $current_time2 = date('h:i', strtotime($request->walkin_time));
 
+        $getEmpValidate= EmployeeWalkin::join('walkin', 'walkin.id', 'employee_walkin.walkin_id')
+            // ->join('walkin', 'walkin.id', 'service_walkin.walkin_id')
+            ->select('walkin.walkin_time_out')
+            // ->where('walkin.walkin_time_out','>', $current_time2)
+            ->where('employee_walkin.employee_id','=', $request->employee_id)
+             // ->count('walkin.walkin_time_out');
+            ->first();
+
+        // return $current_time2;
         $checkExistingWalkin = Walkin::where('walkin_time', $request->walkin_time)
             ->where(DB::raw("(DATE_FORMAT(created_at,'%Y-%m-%d'))"), '=', $current_day)
              ->count('walkin_time');
             // ->get(['walkin_time']);
 
         // return $checkExistingWalkin;
+        if($getEmpValidate->walkin_time_out > $current_time2) {
+            Alert::error('Employee has conflict and current busy. Try another time!')->persistent("OK");
+            return redirect()->back()->withInput(Input::all());
+        }
         if($checkExistingWalkin == 1) {
             Alert::error('Walk-in has conflict!')->persistent("OK");
             return redirect()->back()->withInput(Input::all());
         }else{
+
+            
+            
+           // return ;
 
             // return date('h:i:s a', strtotime($request->walkin_time));
             $createCustomerWalkin = Walkin::create([
@@ -99,6 +118,8 @@ class WalkinController extends Controller
                 'walkin_time' => $request->walkin_time,
                 'status' => 'Pending'
             ]);
+
+
 
             //Insert multiple hairstylist and walkin id to pivot
             $i = 0; 
@@ -120,7 +141,19 @@ class WalkinController extends Controller
                 $i++;
             }
 
+            $getTotalTimeOut = ServiceWalkin::join('services', 'services.id', 'service_walkin.service_id')
+            // ->join('walkin', 'walkin.id', 'service_walkin.walkin_id')
+            ->select('services.name as service_name', 'services.price as service_price',
+                'service_walkin.walkin_id as walkin_id', DB::raw('SUM(services.service_time) as totaltime'))
+            ->where('service_walkin.walkin_id', $createCustomerWalkin->id)
+            ->first();
 
+            $TotalTimeOut =  strtotime("+".$getTotalTimeOut->totaltime." minutes", strtotime($request->walkin_time));
+            $TotalTimeOutFinal = date('h:i', $TotalTimeOut);
+            // return $getTotalTimeOut;
+            $updateWalkinTimeOut= Walkin::where('id', $createCustomerWalkin->id)->first();
+            $updateWalkinTimeOut->walkin_time_out = $TotalTimeOutFinal;
+            $updateWalkinTimeOut->save();
 
             Alert::success('Walk-in has been Added!')->persistent("OK");
             return redirect()->route('walk-in.index');

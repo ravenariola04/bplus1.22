@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Billing, App\BillingService;
 use App\Reservation, App\ServiceType;
 use Illuminate\Support\Facades\Input;
-use App\User, App\Service, App\Expertise;
+use App\User, App\Service, App\Expertise, App\Vat, App\Payment;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
@@ -416,11 +416,12 @@ class ReservationsController extends Controller
     	$reservation->processed_by = $approved_by;
     	$reservation->save();
 
+
         $user = Reservation::join('users', 'users.id', 'reservations.customer_id')
             ->leftjoin('users as users2', 'users2.id', 'reservations.processed_by')
             ->select('reservations.*', 'users.firstname as customer_firstname', 'reservations.created_at as date_added', 'users.lastname as customer_lastname', 'users2.firstname as processedByFirstname', 'users2.lastname as processedByLastname', 'users2.email as email_user')
             ->first();
-        return $user->email_user;
+        // return $user->email_user;
          $user2 = DB::table('users')->select('email')->where('users.id','=', $reservation_id)->first();
 
         //get services from pivot
@@ -466,6 +467,33 @@ class ReservationsController extends Controller
             ]);
         }
 
+
+        $getTotalAmountDue = BillingService::select(DB::raw('SUM(billing_service.amount) as total'))
+            ->where('billing_id', $insertToBillingTable->id)->first();
+
+        $getAllServices = BillingService::join('services', 'services.id', 'billing_service.service_id')
+            ->join('billing', 'billing.id', 'billing_service.billing_id')
+            ->join('users as customers', 'customers.id', 'billing.customer_id')
+            ->select('services.name as service_name', 'services.price', 'billing.id as billing_id',
+                    'billing_service.created_at as created_at', 'customers.id as customer_id', 'services.id as id', 
+                    'customers.firstname as customer_firstname', 'customers.lastname as customer_lastname')
+            ->where('billing_service.billing_id', $insertToBillingTable->id)
+            ->get();
+
+        $vat = Vat::first();
+
+        $BillingEmployees = BillingEmployee::join('users as employees', 'employees.id', 'billing_employee.employee_id')
+            ->join('expertise', 'expertise.id', 'employees.expertise_id')
+            ->select('billing_employee.*', 'employees.lastname', 'employees.firstname', 'expertise.name as expertise')
+            ->where('billing_employee.billing_id', $insertToBillingTable->id)
+            ->get();
+
+        $sumBillingEmployeeServiceFee = BillingEmployee::join('users as employees', 'employees.id', 'billing_employee.employee_id')
+            ->join('expertise', 'expertise.id', 'employees.expertise_id')
+            ->select(DB::raw('SUM(expertise.service_fee) as totalServiceFee'))
+            ->where('billing_employee.billing_id', $insertToBillingTable->id)
+            ->first();
+
          // Mail::send('emails.welcome', $user, function($message) use ($user)
          //    {
          //        $message->from('BPLUS@gmail.com', "BPLUS");
@@ -474,8 +502,10 @@ class ReservationsController extends Controller
          //    });
        
 
-    	Alert::success('Reservation Approved!')->persistent("OK");
-    	return redirect()->back();
+    	// Alert::success('Reservation Approved!')->persistent("OK");
+        return view ('system/reservation/viewAllReservationsDown', 
+            compact('getTotalAmountDue', 'getAllServices', 'vat', 'BillingEmployees', 'sumBillingEmployeeServiceFee'));
+    	// return redirect()->back();
     }
 
     public function adminCancelReservation($reservation_id) {
@@ -490,4 +520,102 @@ class ReservationsController extends Controller
 
     }
 
+
+     public function adminPayBillingDown(Request $request) {
+
+        $this->validate($request, [
+            'amount_paid' => 'required'
+        ]);
+
+        //VALIDATE PAYMENT
+        // if($request->amount_paid < $request->totalAmountDue) { //if amount paid < total amount due
+        //     Alert::error('Invalid Amount! Please pay the total amount due.')->persistent("OK");
+        //     return redirect()->back()->withInput(Input::all());
+        // }
+
+        //IF AMOUNT PAID IS LESSER THAN TOTAL AMOUNT TO BE PAID (MAY SUKLI)
+        if($request->amount_paid >= $request->totalAmountDue) {
+            $change = ($request->amount_paid - $request->totalAmountDue);
+        }
+
+        //INSERT PAYMENT
+        $addPayment = Payment::create([
+            'customer_id' => $request->customer_id,
+            'total_amount' => $request->totalAmountDue,
+            'amount_paid' => $request->amount_paid,
+            'change' => $change
+        ]);
+
+        // //UPDATE BILLING STATUS TO PAID
+        // $updateBillingStatus = Billing::find($request->billing_id);
+        // $updateBillingStatus->status = 'Paid';
+        // $updateBillingStatus->save();
+
+        // $getBillingEmployee = BillingEmployee::where('billing_id', $request->billing_id)->get();
+        // $employeeCount = count($getBillingEmployee);
+
+        // //INSERT HAIRSTYLIST/EMPLOYEE COMMISSION
+        // $getDefaultCommissionPercentage = CommissionSetting::first();
+        // $percentage = $getDefaultCommissionPercentage->percentage;
+
+        // //Convert our percentage value into a decimal.
+        // $finalTotalAmountDue = $request->totalAmountDue - $request->totalServiceFee1;
+        // $percentageInDecimal = $percentage / 100;
+        // $totalEmployeeCommission = $percentageInDecimal * ($finalTotalAmountDue / $employeeCount);
+
+        // $insertCommission = Commission::create([
+        //     'commission' => $totalEmployeeCommission
+        // ]);
+
+        // foreach($getBillingEmployee as $getBillingEmployee1) {
+        //     $commission_id[] = $insertCommission->id;
+        //     $employee_id[] = $getBillingEmployee1->employee_id;
+        // }
+
+        // for($i=0;$i<count($employee_id);$i++){
+        //     CommissionEmployee::create([
+        //         'commission_id' => $commission_id[$i],
+        //         'employee_id'   => $employee_id[$i],
+        //     ]);
+        // }
+
+        // $getAllServices = BillingService::join('services', 'services.id', 'billing_service.service_id')
+        //     ->select('services.id as service_id', 'services.name as service_name', 
+        //             'services.price as price')
+        //     ->where('billing_service.billing_id', $request->billing_id)
+        //     ->get();
+
+        // foreach($getAllServices as $getAllServices1){
+        //     $service_id[] = $getAllServices1->service_id;
+        // }
+
+        // for($i=0;$i<count($service_id);$i++){
+        //     CommissionService::create([
+        //         'commission_id' => $insertCommission->id, 
+        //         'service_id' => $service_id[$i]
+        //     ]);
+        // }
+
+        Alert::success('Payment Successful! <br> Total Amount:&#8369;'.$request->totalAmountDue.'<br> Amount Paid:&#8369;'.$request->amount_paid.'<br>Change:&#8369;'.$change.'')->html()->persistent("OK");
+
+            // return redirect()->route('viewReservationReceipt', ['billing_id' => $request->billing_id, 'amount_paid' => $request->amount_paid, 'change' => $change]);
+
+        $reservations = Reservation::join('users', 'users.id', 'reservations.customer_id')
+            ->leftjoin('users as users2', 'users2.id', 'reservations.processed_by')
+            ->select('reservations.*', 'users.firstname as customer_firstname', 'reservations.created_at as date_added', 'users.lastname as customer_lastname', 'users2.firstname as processedByFirstname', 'users2.lastname as processedByLastname')
+            ->get();
+
+        $employeeReservations = EmployeeReservation::join('users as employees', 'employees.id', 'employee_reservation.employee_id')
+            ->join('expertise', 'expertise.id', 'employees.expertise_id')
+            ->select('employee_reservation.*', 'employees.firstname', 'employees.lastname', 'expertise.name as expertise')
+            ->get();
+
+        $getServices = ReservationService::join('services', 'services.id', 'reservation_service.service_id')
+            ->get();
+
+        return view ('system/reservation/viewAllReservations', 
+            compact('reservations', 'getServices', 'employeeReservations'));
+    }
+
 }
+

@@ -8,7 +8,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2">
-                    <img src="{{ asset('template/img/logo2.png') }}" class="img-responsive">     
+                    <img src="{{ asset('template/img/bpluslogo.jpg') }}" class="img-responsive">     
                 </div>
                 <div class="col-lg-8 col-lg-offset-2 himg">
                     <h3>We are the Beauty Plus Salon 

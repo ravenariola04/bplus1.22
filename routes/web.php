@@ -89,6 +89,8 @@ route::group(['middleware' => 'auth'], function() {
 	route::get('admin/payment/all', 'PaymentController@adminViewAllPayments')->name('adminViewAllPayments');
 	route::get('admin/billing/pay/{billing_id}', 'PaymentController@adminPayBilling')->name('adminPayBilling');
 	route::post('admin/billing/pay/store', 'PaymentController@adminPayBillingStore')->name('adminPayBillingStore');
+	// route::post('reservation/all', 'ReservationsController@adminPayBillingDown')->name('adminPayBillingDown');
+	Route::post('AddresseeList', 'ReservationsController@adminPayBillingDown');
 
 	//sales
 	route::get('admin/sales/all', 'SalesController@adminViewAllSales')->name('adminViewAllSales');

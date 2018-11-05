@@ -66,7 +66,7 @@
 								<td>{{$date_added}}</td>
 								<td>
 									@if($reservation->status == 'Pending')
-										<a href="{{ route('adminApproveReservation', ['reservation_id' => $reservation->id])}}" class="btn btn-md btn-primary" onclick="return confirm('Approve reservation?');">Approve</a>
+										<a href="{{ route('adminApproveReservation', ['reservation_id' => $reservation->id])}}" class="btn btn-md btn-primary" onclick="return confirm('Approve reservation?');">Downpayment</a>
 										<a href="{{ route('adminCancelReservation', ['reservation_id' => $reservation->id])}}" class="btn btn-md btn-danger" onclick="return confirm('Cancel reservation?');">Cancel</a>
 									@endif
 								</td>
